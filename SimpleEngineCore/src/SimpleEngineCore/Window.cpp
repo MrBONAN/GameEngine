@@ -1,6 +1,6 @@
 #include "SimpleEngineCore/Window.hpp"
 #include "SimpleEngineCore/Log.hpp"
-
+#include "SimpleEngineCore/Rendering/OpenGL/ShaderProgram.hpp"
 #include "glad/glad.h"
 #include "GLFW/glfw3.h"
 
@@ -12,7 +12,7 @@ namespace SimpleEngine {
 
     static bool s_GLFW_initialized = false;
 
-    GLuint shader_prog;
+    std::unique_ptr<class ShaderProgram> p_shader_program;
     GLuint vao;
 
     GLfloat points[]{
@@ -61,7 +61,7 @@ namespace SimpleEngine {
         glClearColor(m_background_color[0], m_background_color[1],  m_background_color[2], m_background_color[3]);
         glClear(GL_COLOR_BUFFER_BIT);
 
-        glUseProgram(shader_prog);
+        p_shader_program->bind();
         glBindVertexArray(vao);
         glDrawArrays(GL_TRIANGLES, 0, 3);
         glBindVertexArray(0);
@@ -146,39 +146,9 @@ namespace SimpleEngine {
             [](GLFWwindow* pWindow, int width, int height) {
                 glViewport(0, 0, width, height);
             });
-
-        GLuint vs = glCreateShader(GL_VERTEX_SHADER);
-        glShaderSource(vs, 1, &vertex_shader, nullptr);
-        glCompileShader(vs);
-
-        int success;
-        char infoLog[512];
-        glGetShaderiv(vs, GL_COMPILE_STATUS, &success);
-        if (!success)
-        {
-            glGetShaderInfoLog(vs, 512, NULL, infoLog);
-            LOG_CRITICAL("ERROR::SHADER::VERTEX::COMPILATION_FAILED\n{}", infoLog);
-        }
-
-        GLuint fs = glCreateShader(GL_FRAGMENT_SHADER);
-        glShaderSource(fs, 1, &fragment_shader, nullptr);
-        glCompileShader(fs);
-
-        glGetShaderiv(fs, GL_COMPILE_STATUS, &success);
-        if (!success)
-        {
-            glGetShaderInfoLog(fs, 512, NULL, infoLog);
-            LOG_CRITICAL("ERROR::SHADER::FRAGMENT::COMPILATION_FAILED\n{}", infoLog);
-        }
-
-        shader_prog = glCreateProgram();
-        glAttachShader(shader_prog, vs);
-        glAttachShader(shader_prog, fs);
-        glLinkProgram(shader_prog);
-
-        glDeleteShader(vs);
-        glDeleteShader(fs);
-
+        //auto vs = std::move(downloadShaderSrc("src\\shaders\\vertex_shader.shd"));
+        p_shader_program = std::make_unique<ShaderProgram>(vertex_shader, fragment_shader);
+        if (!p_shader_program->isCompiled()) return false;
 
         GLuint points_vbo = 0;
         glGenBuffers(1, &points_vbo);

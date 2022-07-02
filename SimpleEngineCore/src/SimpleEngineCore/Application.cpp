@@ -34,7 +34,7 @@ namespace SimpleEngine {
 
 		m_event_dispatcher.add_event_listener<EventMouseMoved>(
 			[](EventMouseMoved& event) {
-				LOG_INFO("[MouseMoved] Mouse moved to {0}-X {1}-Y", event.x, event.y);
+				//LOG_INFO("[MouseMoved] Mouse moved to {0}-X {1}-Y", event.x, event.y);
 			});
 
 		while (!m_bCloseWindow) {
