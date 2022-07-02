@@ -1,5 +1,5 @@
 #pragma once
-#include <string>
+//#include <string>
 namespace SimpleEngine { 
 	/*std::string downloadShaderSrc(const char* path);
 	*/
