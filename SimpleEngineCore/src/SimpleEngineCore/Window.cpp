@@ -16,18 +16,19 @@ namespace SimpleEngine {
     static bool s_GLFW_initialized = false;
 
     std::unique_ptr<class ShaderProgram> p_shader_program;
+
     std::unique_ptr<class VertexArray> p_vao;
 
-    GLfloat points[]{
-         0.0f,	0.5f, 0.0f,
-         0.5f, -0.5f, 0.0f,
-        -0.5f, -0.5f, 0.0f
-    };
 
-    GLfloat colors[]{
-         1.0f,	0.0f, 0.0f,
-         0.0f,	1.0f, 0.0f,
-         0.0f,	0.0f, 1.0f
+    GLfloat points_colors[]{
+        // position                  color
+         -0.5f,  0.5f,   0.0f, 1.0f, 1.0f,
+          0.5f,  0.5f,   1.0f, 1.0f, 0.0f,
+          0.5f, -0.5f,   1.0f, 0.0f, 1.0f,
+
+         -0.5f,  0.5f,   0.0f, 1.0f, 1.0f,
+         -0.5f, -0.5f,   1.0f, 1.0f, 0.0f,
+          0.5f, -0.5f,   1.0f, 0.0f, 1.0f,
     };
 
     const char* vertex_shader =
@@ -59,36 +60,7 @@ namespace SimpleEngine {
         ImGui_ImplGlfw_InitForOpenGL(m_pWindow, true);
 	}
 
-	void Window::on_update() {
-
-        glClearColor(m_background_color[0], m_background_color[1],  m_background_color[2], m_background_color[3]);
-        glClear(GL_COLOR_BUFFER_BIT);
-
-        p_shader_program->bind();
-        p_vao->bind();
-        glDrawArrays(GL_TRIANGLES, 0, 3);
-        p_vao->unbind();
-
-        ImGuiIO& io = ImGui::GetIO();
-        io.DisplaySize.x = static_cast<float>(get_width());
-        io.DisplaySize.y = static_cast<float>(get_height());
-
-        ImGui_ImplOpenGL3_NewFrame();
-        ImGui_ImplGlfw_NewFrame();
-        ImGui::NewFrame();
-
-        //ImGui::ShowDemoWindow();
-
-        ImGui::Begin("Background color window");
-        ImGui::ColorEdit4("background color", m_background_color);
-        ImGui::End();
-
-        ImGui::Render();
-        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
-
-        glfwSwapBuffers(m_pWindow);
-        glfwPollEvents();
-	}
+	
 
 	int Window::init() {
         LOG_INFO("Creating window \"{0}\" size {1}x{2}", m_data.title, m_data.width, m_data.height);
@@ -149,22 +121,59 @@ namespace SimpleEngine {
             [](GLFWwindow* pWindow, int width, int height) {
                 glViewport(0, 0, width, height);
             });
+
         //auto vs = std::move(downloadShaderSrc("src\\shaders\\vertex_shader.shd"));
+
         p_shader_program = std::make_unique<ShaderProgram>(vertex_shader, fragment_shader);
         if (!p_shader_program->isCompiled()) return false;
 
 
-        VertexBuffer p_points_vbo(points, sizeof(points), VertexBuffer::EUsage::Static);
-        VertexBuffer p_colors_vbo(colors, sizeof(colors), VertexBuffer::EUsage::Static);
-
         p_vao = std::make_unique<VertexArray>();
 
-        
-        p_vao->add_buffer(p_points_vbo);
-        p_vao->add_buffer(p_colors_vbo);
-        glBindVertexArray(0);
+        BufferLayout buffer_layout{
+            ShaderDataType::Float2,
+            ShaderDataType::Float3
+        };
+
+        VertexBuffer p_vbo (points_colors, sizeof(points_colors), buffer_layout);
+
+        p_vao->add_buffer(p_vbo);
+
+        VertexArray::unbind();
         return 0;
 	}
+
+    void Window::on_update() {
+
+        glClearColor(m_background_color[0], m_background_color[1], m_background_color[2], m_background_color[3]);
+        glClear(GL_COLOR_BUFFER_BIT);
+
+        p_shader_program->bind();
+        p_vao->bind();
+        glDrawArrays(GL_TRIANGLES, 0, 6);
+        VertexArray::unbind();
+
+
+        ImGuiIO& io = ImGui::GetIO();
+        io.DisplaySize.x = static_cast<float>(get_width());
+        io.DisplaySize.y = static_cast<float>(get_height());
+
+        ImGui_ImplOpenGL3_NewFrame();
+        ImGui_ImplGlfw_NewFrame();
+        ImGui::NewFrame();
+
+        ImGui::Begin("Background color window");
+        ImGui::ColorEdit4("background color", m_background_color);
+        ImGui::End();
+
+        ImGui::Render();
+        ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
+
+
+        glfwSwapBuffers(m_pWindow);
+        glfwPollEvents();
+    }
 
 	void Window::shutdown() {
         glfwDestroyWindow(m_pWindow);
