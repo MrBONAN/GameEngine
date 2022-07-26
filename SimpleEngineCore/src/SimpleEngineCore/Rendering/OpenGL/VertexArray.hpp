@@ -1,5 +1,6 @@
 #pragma once
 #include "VertexBuffer.hpp"
+#include "IndexBuffer.hpp"
 
 namespace SimpleEngine {
 	class VertexArray {
@@ -14,10 +15,14 @@ namespace SimpleEngine {
 
 		void bind() const;
 		static void unbind();
-		void add_buffer(const VertexBuffer& vertex_buffer);
+		void add_vertex_buffer(const VertexBuffer& vertex_buffer);
+
+		void set_index_buffer(const IndexBuffer& index_buffer);
+		size_t get_indeces_count() const { return m_indecis_count; }
 
 	private:
 		unsigned int m_id = 0;
 		unsigned int m_elements_count = 0;
+		size_t m_indecis_count = 0;
 	};
 }

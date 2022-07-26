@@ -6,6 +6,7 @@ set(ENGINE_PUBLIC_INCLUDES
 	includes/SimpleEngineCore/Application.hpp
 	includes/SimpleEngineCore/Log.hpp
 	includes/SimpleEngineCore/Event.hpp
+	includes/SimpleEngineCore/Camera.hpp
 )
 
 set(ENGINE_PRIVATE_INCLUDES
@@ -13,14 +14,17 @@ set(ENGINE_PRIVATE_INCLUDES
 	src/SimpleEngineCore/Rendering/OpenGL/ShaderProgram.hpp
 	src/SimpleEngineCore/Rendering/OpenGL/VertexBuffer.hpp
 	src/SimpleEngineCore/Rendering/OpenGL/VertexArray.hpp
+	src/SimpleEngineCore/Rendering/OpenGL/IndexBuffer.hpp
 )
 
 set(ENGINE_PRIVATE_SOURCES
 	src/SimpleEngineCore/Application.cpp
 	src/SimpleEngineCore/Window.cpp
+	src/SimpleEngineCore/Camera.cpp
 	src/SimpleEngineCore/Rendering/OpenGL/ShaderProgram.cpp
 	src/SimpleEngineCore/Rendering/OpenGL/VertexBuffer.cpp
 	src/SimpleEngineCore/Rendering/OpenGL/VertexArray.cpp
+	src/SimpleEngineCore/Rendering/OpenGL/IndexBuffer.cpp
 )
 
 set(ENGINE_ALL_SOURCES
@@ -47,8 +51,11 @@ target_link_libraries(${ENGINE_PROJECT_NAME} PRIVATE glfw)
 add_subdirectory(../external/spdlog ${CMAKE_CURRENT_BINARY_DIR}/spdlog)
 target_link_libraries(${ENGINE_PROJECT_NAME} PRIVATE spdlog)
 
-add_subdirectory(../glad ${CMAKE_CURRENT_BINARY_DIR}/glad)
+add_subdirectory(../external/glad ${CMAKE_CURRENT_BINARY_DIR}/glad)
 target_link_libraries(${ENGINE_PROJECT_NAME} PRIVATE glad)
+
+add_subdirectory(../external/glm ${CMAKE_CURRENT_BINARY_DIR}/glm)
+target_link_libraries(${ENGINE_PROJECT_NAME} PRIVATE glm)
 
 
 set(IMGUI_INCLUDES

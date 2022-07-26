@@ -1,6 +1,7 @@
 #include "ShaderProgram.hpp"
 #include "SimpleEngineCore/Log.hpp"
 #include "glad/glad.h"
+#include "glm/gtc/type_ptr.hpp"
 
 #include <fstream>
 
@@ -85,6 +86,11 @@ namespace SimpleEngine {
 	}
 	void ShaderProgram::unbind() {
 		glUseProgram(0);
+	}
+
+	void ShaderProgram::setMatrix4(const char* name, glm::mat4& matrix)
+	{
+		glUniformMatrix4fv(glGetUniformLocation(m_id, name), 1, GL_FALSE, glm::value_ptr(matrix));
 	}
 
 	ShaderProgram& ShaderProgram::operator=(ShaderProgram&& shaderprogram) noexcept{
