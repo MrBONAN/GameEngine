@@ -15,7 +15,7 @@ public:
 int main() {
 	auto myApp = std::make_unique<MyApp>();
 
-	int returnCode = myApp->start(800, 600, "SimpleGameEngine");
+	int returnCode = myApp->start(1200, 800, "SimpleGameEngine");
 
 	/*MyApp myApp;
 	int returnCode =  myApp.start(800, 400, "SimpleGameEngine");*/

@@ -6,8 +6,8 @@
 #include "SimpleEngineCore/Rendering/OpenGL/VertexArray.hpp"
 #include "SimpleEngineCore/Rendering/OpenGL/IndexBuffer.hpp"
 #include "SimpleEngineCore/Camera.hpp"
+#include "SimpleEngineCore/Rendering/OpenGL/Renderer_OpenGL.hpp"
 
-#include "glad/glad.h"
 #include "GLFW/glfw3.h"
 
 #include "imgui/imgui.h"
@@ -18,8 +18,6 @@
 #include "glm/trigonometric.hpp"
 
 namespace SimpleEngine {
-
-    static bool s_GLFW_initialized = false;
 
     std::unique_ptr<class ShaderProgram> p_shader_program;
     std::unique_ptr<class VertexArray> p_vao;
@@ -44,7 +42,6 @@ namespace SimpleEngine {
     float camera_rotation[] = { 0.0f, 0.0f, 0.0f };
     bool is_perspective_mode = false;
     Camera camera;
-    int temp = 0;
 
     const char* vertex_shader =
         R"(
@@ -83,29 +80,27 @@ namespace SimpleEngine {
 
 	
 
-	int Window::init() {
+    int Window::init() {
         LOG_INFO("Creating window \"{0}\" size {1}x{2}", m_data.title, m_data.width, m_data.height);
-        
-        if (!s_GLFW_initialized) {
-            if (!glfwInit()) {
-                LOG_CRITICAL("Can't initialize GLFW");
-                return -1;
-            }
-            s_GLFW_initialized = true;
+
+        glfwSetErrorCallback([](int error_code, const char* description) {
+            LOG_CRITICAL("GLFW error: {0}", description);
+            });
+
+        if (!glfwInit()) {
+            LOG_CRITICAL("Can't initialize GLFW");
+            return -1;
         }
 
         m_pWindow = glfwCreateWindow(m_data.width, m_data.height, m_data.title.c_str(), nullptr, nullptr);
         if (!m_pWindow)
         {
             LOG_CRITICAL("Can't create window {0}", m_data.title);
-            glfwTerminate();
             return -2;
         }
 
-        glfwMakeContextCurrent(m_pWindow);
-        
-        if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
-            LOG_CRITICAL("Faled to initialize GLAD");
+        if (!Renderer_OpenGL::init(m_pWindow)) {
+            LOG_INFO("Failed initialize OpenGL renderer");
             return -3;
         }
 
@@ -140,7 +135,7 @@ namespace SimpleEngine {
 
         glfwSetFramebufferSizeCallback(m_pWindow,
             [](GLFWwindow* pWindow, int width, int height) {
-                glViewport(0, 0, width, height);
+                Renderer_OpenGL::set_view_port(width, height);
             });
 
         //auto vs = std::move(downloadShaderSrc("src\\shaders\\vertex_shader.shd"));
@@ -169,10 +164,8 @@ namespace SimpleEngine {
 
     void Window::on_update() {
 
-        if (!(temp++ % 100)) LOG_INFO(temp - 1);
-
-        glClearColor(m_background_color[0], m_background_color[1], m_background_color[2], m_background_color[3]);
-        glClear(GL_COLOR_BUFFER_BIT);
+        Renderer_OpenGL::set_clear_color(m_background_color[0], m_background_color[1], m_background_color[2], m_background_color[3]);
+        Renderer_OpenGL::clear();
 
 
         ImGuiIO& io = ImGui::GetIO();
@@ -221,9 +214,8 @@ namespace SimpleEngine {
         p_shader_program->setMatrix4("model_matrix", model_matrix);
         p_shader_program->setMatrix4("view_projection_matrix", camera.get_projection_matrix() * camera.get_view_matrix());
 
-        p_vao->bind();
-        glDrawElements(GL_TRIANGLES, p_vao->get_indeces_count(), GL_UNSIGNED_INT, nullptr);
-        VertexArray::unbind();
+        Renderer_OpenGL::draw(*p_vao);
+
         ShaderProgram::unbind();
 
         ImGui::End();
@@ -238,6 +230,9 @@ namespace SimpleEngine {
     }
 
 	void Window::shutdown() {
+
+        if (ImGui::GetCurrentContext()) ImGui::DestroyContext();
+
         glfwDestroyWindow(m_pWindow);
         glfwTerminate();
 	}
