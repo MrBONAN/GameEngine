@@ -27,9 +27,11 @@ namespace SimpleEngine {
     int Window::init() {
         LOG_INFO("Creating window \"{0}\" size {1}x{2}", m_data.title, m_data.width, m_data.height);
 
-        glfwSetErrorCallback([](int error_code, const char* description) {
-            LOG_CRITICAL("GLFW error: {0}", description);
-            });
+        glfwSetErrorCallback(
+            [](int error_code, const char* description) {
+                LOG_CRITICAL("GLFW error: {0}", description);
+            }
+        );
 
         if (!glfwInit()) {
             LOG_CRITICAL("Can't initialize GLFW");
@@ -58,7 +60,8 @@ namespace SimpleEngine {
 
                 EventWindowResize event(width, height);
                 data.eventCallbackFn(event);
-            });
+            }
+        );
 
         glfwSetWindowCloseCallback(m_pWindow, 
             [](GLFWwindow* pWindow) {
@@ -66,7 +69,8 @@ namespace SimpleEngine {
                 
                 EventWindowClose event;
                 data.eventCallbackFn(event);
-            });
+            }
+        );
 
         glfwSetCursorPosCallback(m_pWindow,
             [](GLFWwindow* pWindow, double x, double y) {
@@ -75,12 +79,37 @@ namespace SimpleEngine {
                 EventMouseMoved event(x, y);
 
                 data.eventCallbackFn(event);
-            });
+            }
+        );
 
         glfwSetFramebufferSizeCallback(m_pWindow,
             [](GLFWwindow* pWindow, int width, int height) {
                 Renderer_OpenGL::set_view_port(width, height);
-            });
+            }
+        );
+
+        glfwSetKeyCallback(m_pWindow,
+            [](GLFWwindow* pWindow, int key, int scancode, int action, int modes) {
+                WindowData& data = *(static_cast<WindowData*>(glfwGetWindowUserPointer(pWindow)));
+                switch (action) {
+                    case (GLFW_PRESS): {
+                        EventKeyPressed event(static_cast<KeyCode>(key), false);
+                        data.eventCallbackFn(event);
+                        break;
+                    }
+                    case(GLFW_RELEASE): {
+                        EventKeyReleased event(static_cast<KeyCode>(key));
+                        data.eventCallbackFn(event);
+                        break;
+                    }
+                    case(GLFW_REPEAT): {
+                        EventKeyPressed event(static_cast<KeyCode>(key), true);
+                        data.eventCallbackFn(event);
+                        break;
+                    }
+                }
+            }
+        );
 
         UIModule::on_window_create(m_pWindow);
 

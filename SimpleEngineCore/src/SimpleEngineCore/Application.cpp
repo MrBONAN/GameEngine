@@ -9,6 +9,7 @@
 #include "SimpleEngineCore/Camera.hpp"
 #include "SimpleEngineCore/Rendering/OpenGL/Renderer_OpenGL.hpp"
 #include "SimpleEngineCore/Modules/UIModule.hpp"
+#include "SimpleEngineCore/Input.hpp"
 
 #include "GLFW/glfw3.h"
 
@@ -92,6 +93,18 @@ namespace SimpleEngine {
 				LOG_INFO("[WindowClose] Window closed");
 				m_bCloseWindow = true;
 			});
+
+        m_event_dispatcher.add_event_listener<EventKeyPressed>(
+            [&](EventKeyPressed& event) {
+                if(event.key_code <= KeyCode::KEY_Z) LOG_INFO("[{0}] key: {1}", (event.repeated? "KeyRepeated" : "KeyPressed"), char(event.key_code));
+                if (!event.repeated) Input::PressKey(event.key_code);
+            });
+
+        m_event_dispatcher.add_event_listener<EventKeyReleased>(
+            [&](EventKeyReleased& event) {
+                if (event.key_code <= KeyCode::KEY_Z) LOG_INFO("[KeyReleased] key: {0}", char(event.key_code));
+                Input::ReleaseKey(event.key_code);
+            });
 
 		m_event_dispatcher.add_event_listener<EventMouseMoved>(
 			[](EventMouseMoved& event) {

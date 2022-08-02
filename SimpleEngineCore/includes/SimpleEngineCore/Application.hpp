@@ -22,7 +22,7 @@ namespace SimpleEngine {
 
 		float camera_position[3] = { 0.0f, 0.0f, 1.0f };
 		float camera_rotation[3] = { 0.0f, 0.0f, 0.0f };
-		bool is_perspective_mode = false;
+		bool is_perspective_mode = true;
 		Camera camera;
 
 	private:

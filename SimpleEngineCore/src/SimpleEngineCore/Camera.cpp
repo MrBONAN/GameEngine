@@ -54,7 +54,7 @@ namespace SimpleEngine {
 									0,							0,							1, 0,
 									0,							0,							0, 1);
 
-		m_view_matrix = rotate_matrix_y * rotate_matrix_x * translate_matrix;
+		m_view_matrix = rotate_matrix_x * rotate_matrix_y * translate_matrix;
 	}
 	void Camera::update_projection_matrix() {
 		if (m_projection_mode == Camera::ProjectionMode::Perspective) {
