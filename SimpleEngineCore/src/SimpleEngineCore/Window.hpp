@@ -40,7 +40,6 @@ namespace SimpleEngine {
 
 		GLFWwindow* m_pWindow = nullptr;
 		WindowData m_data;
-		float m_background_color[4] { .33f, .33f, .33f, 0.f };
 	};
 
 }
