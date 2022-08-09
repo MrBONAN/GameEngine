@@ -23,7 +23,7 @@ namespace SimpleEngine {
 		float camera_position[3] = { 0.0f, 0.0f, 1.0f };
 		float camera_rotation[3] = { 0.0f, 0.0f, 0.0f };
 		bool is_perspective_mode = true;
-		Camera camera;
+		Camera camera{ {-2, 0, 0} };
 
 	private:
 		std::unique_ptr<class Window> m_pWindow;

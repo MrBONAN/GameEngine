@@ -27,17 +27,17 @@ namespace SimpleEngine {
 
     GLfloat points_colors[]{
         // position                  color
-         -0.5f, -0.5f,   0.0f, 1.0f, 1.0f,
-          0.5f, -0.5f,   0.0f, 0.0f, 1.0f,
-         -0.5f,  0.5f,   1.0f, 0.0f, 1.0f,
-          0.5f,  0.5f,   1.0f, 0.0f, 0.0f,
+          0.5f, -0.5f, 1.0f,   0.0f, 0.0f, 1.0f,
+         -0.5f, -1.5f, 0.0f,   0.0f, 1.0f, 1.0f,
+          0.5f,  0.5f, 0.0f,   1.0f, 1.0f, 1.0f,
+         -0.5f,  0.5f, 0.0f,   1.0f, 1.0f, 0.0f,
     };
 
     GLuint indices[]{
         0, 1, 2, 3, 2, 1
     };
 
-    float scale[] = { 1.0f, 1.0f };
+    float scale[] = { 1.0f, 1.0f, 1.0f };
     float rotate = 0.f;
     float translate[] = { 0.0f, 0.0f , 0.f };
     float m_background_color[4]{ .33f, .33f, .33f, 0.f };
@@ -45,14 +45,14 @@ namespace SimpleEngine {
     const char* vertex_shader =
         R"(
         #version 460 core
-        layout (location = 0) in vec2 vertex_position;
+        layout (location = 0) in vec3 vertex_position;
         layout (location = 1) in vec3 vertex_color;
         uniform mat4 model_matrix;
         uniform mat4 view_projection_matrix;
         out vec3 color;
         void main() {
         	color = vertex_color;
-        	gl_Position = view_projection_matrix * model_matrix * vec4(vertex_position, 0.0, 1.0);
+        	gl_Position = view_projection_matrix * model_matrix * vec4(vertex_position, 1.0);
         }
         )";
 
@@ -121,7 +121,7 @@ namespace SimpleEngine {
         p_vao = std::make_unique<VertexArray>();
 
         BufferLayout buffer_layout{
-            ShaderDataType::Float2,
+            ShaderDataType::Float3,
             ShaderDataType::Float3
         };
 
@@ -143,7 +143,7 @@ namespace SimpleEngine {
 
             glm::mat4 scale_matrix(scale[0], 0, 0, 0,
                 0, scale[1], 0, 0,
-                0, 0, 0, 0,
+                0, 0, scale[2], 0,
                 0, 0, 0, 1);
 
             float rotate_in_radians = glm::radians(rotate);
@@ -160,9 +160,6 @@ namespace SimpleEngine {
 
             glm::mat4 model_matrix = translate_matrix * rotate_matrix * scale_matrix;
 
-
-            camera.set_position_rotation(glm::vec3(camera_position[0], camera_position[1], camera_position[2]),
-                glm::vec3(camera_rotation[0], camera_rotation[1], camera_rotation[2]));
             camera.set_projection_mode(is_perspective_mode ? Camera::ProjectionMode::Perspective : Camera::ProjectionMode::Orthographic);
 
             p_shader_program->bind();
@@ -180,7 +177,7 @@ namespace SimpleEngine {
             ImGui::ShowDemoWindow();
             ImGui::Begin("Background color window");
             ImGui::ColorEdit4("background color", m_background_color);
-            ImGui::SliderFloat2("scale", scale, 0, 2);
+            ImGui::SliderFloat3("scale", scale, 0, 2);
             ImGui::SliderFloat("rotate", &rotate, 0, 360);
             ImGui::SliderFloat3("translate", translate, -1, 1);
             ImGui::End();

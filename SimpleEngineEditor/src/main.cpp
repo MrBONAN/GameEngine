@@ -12,28 +12,88 @@ public:
 	virtual void on_update() override {
 		using SimpleEngine::Input;
 		using SimpleEngine::KeyCode;
-		if (Input::IsKeyPressed(KeyCode::KEY_W)) camera_position[2] -= 0.01f;
-		if (Input::IsKeyPressed(KeyCode::KEY_S)) camera_position[2] += 0.01f;
-		if (Input::IsKeyPressed(KeyCode::KEY_A)) camera_position[0] -= 0.01f;
-		if (Input::IsKeyPressed(KeyCode::KEY_D)) camera_position[0] += 0.01f;
 
-		if (Input::IsKeyPressed(KeyCode::KEY_LEFT_SHIFT)) camera_position[1] -= 0.01f;
-		if (Input::IsKeyPressed(KeyCode::KEY_SPACE)) camera_position[1] += 0.01f;
+		glm::vec3 movement_delta{ 0, 0, 0 };
+		glm::vec3 rotation_delta{ 0, 0, 0 };
 
-		if (Input::IsKeyPressed(KeyCode::KEY_LEFT)) camera_rotation[1] += 1;
-		if (Input::IsKeyPressed(KeyCode::KEY_RIGHT)) camera_rotation[1] -= 1;
+		bool move_camera = false;
 
-		if (Input::IsKeyPressed(KeyCode::KEY_UP)) camera_rotation[0] += 1;
-		if (Input::IsKeyPressed(KeyCode::KEY_DOWN)) camera_rotation[0] -= 1;
-		
+		if (Input::IsKeyPressed(KeyCode::KEY_W)) {
+			movement_delta.x += 0.01f;
+			move_camera = true;
+		}
+
+		if (Input::IsKeyPressed(KeyCode::KEY_S)) {
+			movement_delta.x -= 0.01f;
+			move_camera = true;
+		}
+
+		if (Input::IsKeyPressed(KeyCode::KEY_A)) {
+			movement_delta.y -= 0.01f;
+			move_camera = true;
+		}
+
+		if (Input::IsKeyPressed(KeyCode::KEY_D)) {
+			movement_delta.y += 0.01f;
+			move_camera = true;
+		}
+
+		if (Input::IsKeyPressed(KeyCode::KEY_LEFT_SHIFT)) {
+			movement_delta.z -= 0.01f;
+			move_camera = true;
+		}
+
+		if (Input::IsKeyPressed(KeyCode::KEY_SPACE)) {
+			movement_delta.z += 0.01f;
+			move_camera = true;
+		}
+
+		if (Input::IsKeyPressed(KeyCode::KEY_LEFT)) {
+			rotation_delta.z += 1;
+			move_camera = true;
+		}
+
+		if (Input::IsKeyPressed(KeyCode::KEY_RIGHT)) {
+			rotation_delta.z -= 1;
+			move_camera = true;
+		}
+
+		if (Input::IsKeyPressed(KeyCode::KEY_UP)) {
+			rotation_delta.y -= 1;
+			move_camera = true;
+		}
+
+		if (Input::IsKeyPressed(KeyCode::KEY_DOWN)) {
+			rotation_delta.y += 1;
+			move_camera = true;
+		}
+
+		if (Input::IsKeyPressed(KeyCode::KEY_Q)) {
+			rotation_delta.x += 1;
+			move_camera = true;
+		}
+
+		if (Input::IsKeyPressed(KeyCode::KEY_E)) {
+			rotation_delta.x -= 1;
+			move_camera = true;
+		}
+		if(move_camera) camera.add_movement_and_rotation(movement_delta, rotation_delta);
 	}
 
 	virtual void on_ui_draw() override {
+		camera_position[0] = camera.get_position().x;
+		camera_position[1] = camera.get_position().y;
+		camera_position[2] = camera.get_position().z;
+		camera_rotation[0] = camera.get_rotation().x;
+		camera_rotation[1] = camera.get_rotation().y;
+		camera_rotation[2] = camera.get_rotation().z;
 		ImGui::Begin("Editor");
 		ImGui::SliderFloat3("camera position", camera_position, -1, 1);
-		ImGui::SliderFloat2("camera rotation", camera_rotation, 0, 360);
+		ImGui::SliderFloat3("camera rotation", camera_rotation, 0, 360);
 		ImGui::Checkbox("Perspective camera", &is_perspective_mode);
 		ImGui::End();
+		camera.set_position_rotation({ camera_position[0], camera_position[1], camera_position[2] },
+									 { camera_rotation[0], camera_rotation[1], camera_rotation[2] });
 	}
 
 	int frame = 0;
