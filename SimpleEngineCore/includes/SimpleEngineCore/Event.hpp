@@ -99,6 +99,40 @@ namespace SimpleEngine {
 		static const EventType type = EventType::KeyReleased;
 	};
 
+	struct EventMouseButtonPressed : public BaseEvent
+	{
+		EventMouseButtonPressed(const MouseButtonCode mouse_button, const double x_pos, const double y_pos)
+			: mouse_button(mouse_button)
+			, x(x_pos)
+			, y(y_pos)
+		{}
+
+		virtual EventType get_type() const override {
+			return type;
+		}
+		MouseButtonCode mouse_button;
+		double x;
+		double y;
+		static const EventType type = EventType::MouseButtonPressed;
+	};
+
+	struct EventMouseButtonReleased : public BaseEvent
+	{
+		EventMouseButtonReleased(const MouseButtonCode mouse_button, const double x_pos, const double y_pos)
+			: mouse_button(mouse_button)
+			, x(x_pos)
+			, y(y_pos)
+		{}
+
+		virtual EventType get_type() const override {
+			return type;
+		}
+		MouseButtonCode mouse_button;
+		double x;
+		double y;
+		static const EventType type = EventType::MouseButtonReleased;
+	};
+
 	struct EventMouseMoved : public BaseEvent
 	{
 		EventMouseMoved(const double new_x, const double new_y)

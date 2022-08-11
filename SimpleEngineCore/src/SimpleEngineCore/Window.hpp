@@ -2,6 +2,7 @@
 #include "SimpleEngineCore/Event.hpp"
 #include <string>
 #include <functional>
+#include "glm/ext/vector_float2.hpp"
 
 struct GLFWwindow;
 
@@ -17,6 +18,7 @@ namespace SimpleEngine {
 		Window(Window&&) = delete;
 		Window& operator=(const Window&) = delete;
 		Window& operator=(Window&&) = delete;
+		glm::vec2 get_current_cursor_position();
 
 		void on_update();
 

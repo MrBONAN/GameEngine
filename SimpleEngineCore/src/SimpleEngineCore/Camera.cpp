@@ -13,18 +13,18 @@ namespace SimpleEngine {
 
 	void Camera::set_position(const glm::vec3& position) {
 		m_position = position;
-		update_view_matrix();
+		m_update_view_matrix = true;
 	}
 
 	void Camera::set_rotation(const glm::vec3& rotation) {
 		m_rotation = rotation;
-		update_view_matrix();
+		m_update_view_matrix = true;
 	}
 
 	void Camera::set_position_rotation(const glm::vec3& position, const glm::vec3& rotation) {
 		m_position = position;
 		m_rotation = rotation;
-		update_view_matrix();
+		m_update_view_matrix = true;
 	}
 
 	void Camera::set_projection_mode(const ProjectionMode& projection_mode) {
@@ -56,6 +56,7 @@ namespace SimpleEngine {
 		m_up = glm::cross(m_right, m_direction);
 
 		m_view_matrix = glm::lookAt(m_position, m_position + m_direction, m_up);
+		m_update_view_matrix = false;
 	}
 	void Camera::update_projection_matrix() {
 		if (m_projection_mode == Camera::ProjectionMode::Perspective) {
@@ -80,25 +81,32 @@ namespace SimpleEngine {
 		}
 	}
 
+	const glm::mat4& Camera::get_view_matrix()
+	{
+		if (m_update_view_matrix)
+			update_view_matrix();
+		return m_view_matrix;
+	}
+
 	void Camera::move_forward(const float delta) {
 		m_position += m_direction * delta;
-		update_view_matrix();
+		m_update_view_matrix = true;
 	}
 
 	void Camera::move_right(const float delta) {
 		m_position += m_right * delta;
-		update_view_matrix();
+		m_update_view_matrix = true;
 	}
 
 	void Camera::move_up(const float delta) {
-		m_position += m_up * delta;
-		update_view_matrix();
+		m_position += s_world_up * delta;
+		m_update_view_matrix = true;
 	}
 	void Camera::add_movement_and_rotation(const glm::vec3& movement_delta, const glm::vec3& rotation_delta) {
 		m_position += m_direction * movement_delta.x;
 		m_position += m_right * movement_delta.y;
 		m_position += m_up * movement_delta.z;
 		m_rotation += rotation_delta;
-		update_view_matrix();
+		m_update_view_matrix = true;
 	}
 }

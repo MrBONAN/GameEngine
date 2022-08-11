@@ -30,7 +30,7 @@ namespace SimpleEngine {
           0.5f, -0.5f, 1.0f,   0.0f, 0.0f, 1.0f,
          -0.5f, -1.5f, 0.0f,   0.0f, 1.0f, 1.0f,
           0.5f,  0.5f, 0.0f,   1.0f, 1.0f, 1.0f,
-         -0.5f,  0.5f, 0.0f,   1.0f, 1.0f, 0.0f,
+         -0.5f,  0.5f, 0.0f,   1.0f, 0.0f, 1.0f,
     };
 
     GLuint indices[]{
@@ -96,14 +96,28 @@ namespace SimpleEngine {
 
         m_event_dispatcher.add_event_listener<EventKeyPressed>(
             [&](EventKeyPressed& event) {
-                if(event.key_code <= KeyCode::KEY_Z) LOG_INFO("[{0}] key: {1}", (event.repeated? "KeyRepeated" : "KeyPressed"), char(event.key_code));
+                if(event.key_code <= KeyCode::KEY_Z) LOG_INFO("[{0}] code: {1}", (event.repeated? "KeyRepeated" : "KeyPressed"), char(event.key_code));
                 if (!event.repeated) Input::PressKey(event.key_code);
             });
 
         m_event_dispatcher.add_event_listener<EventKeyReleased>(
             [&](EventKeyReleased& event) {
-                if (event.key_code <= KeyCode::KEY_Z) LOG_INFO("[KeyReleased] key: {0}", char(event.key_code));
+                if (event.key_code <= KeyCode::KEY_Z) LOG_INFO("[KeyReleased] code: {0}", char(event.key_code));
                 Input::ReleaseKey(event.key_code);
+            });
+
+        m_event_dispatcher.add_event_listener<EventMouseButtonPressed>(
+            [&](EventMouseButtonPressed& event) {
+                LOG_INFO("[MouseButtonPressed] code: {0} at {1}-X {2}-Y", static_cast<size_t>(event.mouse_button), event.x, event.y);
+                Input::PressMouseButton(event.mouse_button);
+                on_mouse_button_event(event.mouse_button, event.x, event.y, true);
+            });
+
+        m_event_dispatcher.add_event_listener<EventMouseButtonReleased>(
+            [&](EventMouseButtonReleased& event) {
+                LOG_INFO("[MouseButtonReleased] code: {0} at {1}-X {2}-Y", static_cast<size_t>(event.mouse_button), event.x, event.y);
+                Input::ReleaseMouseButton(event.mouse_button);
+                on_mouse_button_event(event.mouse_button, event.x, event.y, false);
             });
 
 		m_event_dispatcher.add_event_listener<EventMouseMoved>(
@@ -195,4 +209,8 @@ namespace SimpleEngine {
 
 		return 0;
 	}
+    glm::vec2 Application::get_current_cursor_position()
+    {
+        return std::move(m_pWindow->get_current_cursor_position());
+    }
 }

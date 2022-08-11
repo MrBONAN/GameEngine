@@ -16,9 +16,14 @@ namespace SimpleEngine {
 		Application& operator=(Application&&) = delete;
 
 		virtual int start(unsigned __int32 window_width, unsigned __int32 window_height, const char* title);
+		glm::vec2 get_current_cursor_position();
 
 		virtual void on_update() {}
 		virtual void on_ui_draw() {}
+		virtual void on_mouse_button_event(const MouseButtonCode button_code,
+										   const double x_pos,
+										   const double y_pos,
+										   const bool pressed) {};
 
 		float camera_position[3] = { 0.0f, 0.0f, 1.0f };
 		float camera_rotation[3] = { 0.0f, 0.0f, 0.0f };

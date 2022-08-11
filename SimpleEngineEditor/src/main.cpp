@@ -9,6 +9,9 @@
 class SimpleEngineEditor : public SimpleEngine::Application
 {
 public:
+	double m_initial_mouse_pos_x = 0.0;
+	double m_initial_mouse_pos_y = 0.0;
+
 	virtual void on_update() override {
 		using SimpleEngine::Input;
 		using SimpleEngine::KeyCode;
@@ -16,68 +19,67 @@ public:
 		glm::vec3 movement_delta{ 0, 0, 0 };
 		glm::vec3 rotation_delta{ 0, 0, 0 };
 
-		bool move_camera = false;
-
-		if (Input::IsKeyPressed(KeyCode::KEY_W)) {
+		if (Input::IsKeyPressed(KeyCode::KEY_W))
 			movement_delta.x += 0.01f;
-			move_camera = true;
-		}
 
-		if (Input::IsKeyPressed(KeyCode::KEY_S)) {
+		if (Input::IsKeyPressed(KeyCode::KEY_S))
 			movement_delta.x -= 0.01f;
-			move_camera = true;
-		}
 
-		if (Input::IsKeyPressed(KeyCode::KEY_A)) {
+		if (Input::IsKeyPressed(KeyCode::KEY_A))
 			movement_delta.y -= 0.01f;
-			move_camera = true;
-		}
 
-		if (Input::IsKeyPressed(KeyCode::KEY_D)) {
+		if (Input::IsKeyPressed(KeyCode::KEY_D))
 			movement_delta.y += 0.01f;
-			move_camera = true;
-		}
 
-		if (Input::IsKeyPressed(KeyCode::KEY_LEFT_SHIFT)) {
+		if (Input::IsKeyPressed(KeyCode::KEY_LEFT_SHIFT))
 			movement_delta.z -= 0.01f;
-			move_camera = true;
-		}
 
-		if (Input::IsKeyPressed(KeyCode::KEY_SPACE)) {
+		if (Input::IsKeyPressed(KeyCode::KEY_SPACE))
 			movement_delta.z += 0.01f;
-			move_camera = true;
-		}
 
-		if (Input::IsKeyPressed(KeyCode::KEY_LEFT)) {
+		if (Input::IsKeyPressed(KeyCode::KEY_LEFT))
 			rotation_delta.z += 1;
-			move_camera = true;
-		}
 
-		if (Input::IsKeyPressed(KeyCode::KEY_RIGHT)) {
+		if (Input::IsKeyPressed(KeyCode::KEY_RIGHT))
 			rotation_delta.z -= 1;
-			move_camera = true;
-		}
 
-		if (Input::IsKeyPressed(KeyCode::KEY_UP)) {
+		if (Input::IsKeyPressed(KeyCode::KEY_UP))
 			rotation_delta.y -= 1;
-			move_camera = true;
-		}
 
-		if (Input::IsKeyPressed(KeyCode::KEY_DOWN)) {
+		if (Input::IsKeyPressed(KeyCode::KEY_DOWN))
 			rotation_delta.y += 1;
-			move_camera = true;
-		}
 
-		if (Input::IsKeyPressed(KeyCode::KEY_Q)) {
+		if (Input::IsKeyPressed(KeyCode::KEY_Q))
 			rotation_delta.x += 1;
-			move_camera = true;
+
+		if (Input::IsKeyPressed(KeyCode::KEY_E))
+			rotation_delta.x -= 1;
+
+		if (Input::IsMouseButtonPressed(SimpleEngine::MouseButtonCode::MOUSE_BUTTON_RIGHT)) {
+			glm::vec2 current_cursor_position = get_current_cursor_position();
+			if (Input::IsMouseButtonPressed(SimpleEngine::MouseButtonCode::MOUSE_BUTTON_LEFT)) {
+				
+				camera.move_right(-(m_initial_mouse_pos_x - current_cursor_position.x) / 100.);
+				camera.move_up(-(m_initial_mouse_pos_y - current_cursor_position.y) / 100.);
+			}
+			else {
+				glm::vec2 current_cursor_position = get_current_cursor_position();
+				rotation_delta.z += (m_initial_mouse_pos_x - current_cursor_position.x) / 5.;
+				rotation_delta.y -= (m_initial_mouse_pos_y - current_cursor_position.y) / 5.;
+			}
+			m_initial_mouse_pos_x = current_cursor_position.x;
+			m_initial_mouse_pos_y = current_cursor_position.y;
 		}
 
-		if (Input::IsKeyPressed(KeyCode::KEY_E)) {
-			rotation_delta.x -= 1;
-			move_camera = true;
-		}
-		if(move_camera) camera.add_movement_and_rotation(movement_delta, rotation_delta);
+		camera.add_movement_and_rotation(movement_delta, rotation_delta);
+	}
+
+	virtual void on_mouse_button_event(const SimpleEngine::MouseButtonCode button_code,
+									   const double x_pos,
+									   const double y_pos,
+									   const bool pressed) override {
+		m_initial_mouse_pos_x = x_pos;
+		m_initial_mouse_pos_y = y_pos;
 	}
 
 	virtual void on_ui_draw() override {

@@ -24,7 +24,7 @@ namespace SimpleEngine {
 
 		void update_view_matrix();
 		void update_projection_matrix();
-		const glm::mat4& get_view_matrix() const { return m_view_matrix; }
+		const glm::mat4& get_view_matrix();
 		const glm::mat4& get_projection_matrix() const { return m_projection_matrix; }
 
 		void move_forward(const float delta);
@@ -51,6 +51,8 @@ namespace SimpleEngine {
 
 		glm::mat4 m_view_matrix;
 		glm::mat4 m_projection_matrix;
+
+		bool m_update_view_matrix = false;
 	};
 
 }
