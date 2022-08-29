@@ -11,10 +11,9 @@
 #include "SimpleEngineCore/Modules/UIModule.hpp"
 #include "SimpleEngineCore/Input.hpp"
 
+#include "glad/glad.h"
 #include "GLFW/glfw3.h"
-
 #include "imgui/imgui.h"
-
 #include "glm/mat3x3.hpp"
 #include "glm/trigonometric.hpp"
 
@@ -26,16 +25,76 @@ namespace SimpleEngine {
     std::unique_ptr<class VertexArray> p_vao;
 
     GLfloat points_colors[]{
-        // position                  color
-          0.5f, -0.5f, 1.0f,   0.0f, 0.0f, 1.0f,
-         -0.5f, -1.5f, 0.0f,   0.0f, 1.0f, 1.0f,
-          0.5f,  0.5f, 0.0f,   1.0f, 1.0f, 1.0f,
-         -0.5f,  0.5f, 0.0f,   1.0f, 0.0f, 1.0f,
+        // position                  color            texture
+         0.0f, -0.5f, -0.5f,   0.0f, 1.0f, 1.0f,    2.0f, -1.0f,
+         0.0f,  0.5f, -0.5f,   0.0f, 0.0f, 1.0f,   -1.0f, -1.0f,
+         0.0f, -0.5f,  0.5f,   1.0f, 0.0f, 1.0f,    2.0f, 2.0f,
+         0.0f,  0.5f,  0.5f,   1.0f, 1.0f, 1.0f,   -1.0f, 2.0f,
     };
 
     GLuint indices[]{
         0, 1, 2, 3, 2, 1
     };
+
+    void generate_circle(unsigned char* data, 
+                        const unsigned int width,
+                        const unsigned int height, 
+                        const unsigned int center_x, 
+                        const unsigned int center_y, 
+                        const unsigned int radius, 
+                        const unsigned char color_r,
+                        const unsigned char color_g, 
+                        const unsigned char color_b) {
+        for (int x = 0; x < width; ++x) {
+            for (int y = 0; y < height; ++y) {
+                if ((x - center_x) * (x - center_x) + (y - center_y) * (y - center_y) < radius * radius) {
+                    data[(width * y + x) * 3 + 0] = color_r;
+                    data[(width * y + x) * 3 + 1] = color_g;
+                    data[(width * y + x) * 3 + 2] = color_b;
+                }
+            }
+        }
+    }
+
+    void generate_smile_texture(unsigned char* data,
+                                const unsigned int width,
+                                const unsigned int height) {
+        // background
+        for (int x = 0; x < width; ++x) {
+            for (int y = 0; y < height; ++y) {
+                data[(width * y + x) * 3 + 0] = 200;
+                data[(width * y + x) * 3 + 1] = 200;
+                data[(width * y + x) * 3 + 2] = 200;
+            }
+        }
+
+        // face
+        unsigned int min = (width > height ? height : width);
+        generate_circle(data, width, height, width / 2, height / 2,  min * 0.4, 255, 255, 0);
+
+        // smile
+        generate_circle(data, width, height, width / 2, height * 0.4,  min * 0.2, 0, 0, 0);
+        generate_circle(data, width, height, width / 2, height * 0.45, min * 0.2, 255, 255, 0);
+
+        // eyes
+        generate_circle(data, width, height, width * 0.35, height * 0.6, min * 0.07, 255, 0, 255);
+        generate_circle(data, width, height, width * 0.65, height * 0.6, min * 0.07, 0, 0, 255);
+
+    }
+
+    void generate_squares_texture(unsigned char* data,
+        const unsigned int width,
+        const unsigned int height) {
+        for (int x = 0; x < width; ++x) {
+            for (int y = 0; y < height; ++y) {
+                char color = 0;
+                if (x < width / 2 != y < height / 2) color = 255;
+                data[(width * y + x) * 3 + 0] = color;
+                data[(width * y + x) * 3 + 1] = color;
+                data[(width * y + x) * 3 + 2] = color;
+            }
+        }
+    }
 
     float scale[] = { 1.0f, 1.0f, 1.0f };
     float rotate = 0.f;
@@ -47,22 +106,37 @@ namespace SimpleEngine {
         #version 460 core
         layout (location = 0) in vec3 vertex_position;
         layout (location = 1) in vec3 vertex_color;
+        layout (location = 2) in vec2 texture_coord;
         uniform mat4 model_matrix;
         uniform mat4 view_projection_matrix;
+        uniform int current_frame;        
+
         out vec3 color;
+        out vec2 text_coord_smile;
+        out vec2 text_coord_squares;
+
         void main() {
         	color = vertex_color;
         	gl_Position = view_projection_matrix * model_matrix * vec4(vertex_position, 1.0);
+            text_coord_smile = texture_coord;
+            text_coord_squares = texture_coord + vec2(current_frame / 1000.f, current_frame / 1000.f);
         }
         )";
 
     const char* fragment_shader =
         R"(
         #version 460 core
+
         in vec3 color;
+        in vec2 text_coord_smile;
+        in vec2 text_coord_squares;
         out vec4 frag_color;
+        layout(binding = 0) uniform sampler2D smile_Texture;
+        layout(binding = 1) uniform sampler2D squares_Texture;        
+
         void main() {
-        	frag_color = vec4(color, 1.0);
+        	//frag_color = vec4(color, 1.0);
+            frag_color = texture(smile_Texture, text_coord_smile) * texture(squares_Texture, text_coord_squares);
         }
         )";
 
@@ -124,19 +198,51 @@ namespace SimpleEngine {
 			[](EventMouseMoved& event) {
 				//LOG_INFO("[MouseMoved] Mouse moved to {0}-X {1}-Y", event.x, event.y);
 			});
+        const unsigned int width = 1000;
+        const unsigned int height = 1000;
+        const unsigned int channels = 3;
 
+        unsigned char* data = new unsigned char[width * height * channels];
 
+        GLuint smileTexture;
+        glCreateTextures(GL_TEXTURE_2D, 1, &smileTexture);
+        glTextureStorage2D(smileTexture, 1, GL_RGB8, width, height);
+        generate_smile_texture(data, width, height);
+        glTextureSubImage2D(smileTexture, 0, 0, 0, width, height, GL_RGB, GL_UNSIGNED_BYTE, data);
+
+        glTextureParameteri(smileTexture, GL_TEXTURE_WRAP_S, GL_MIRRORED_REPEAT);
+        glTextureParameteri(smileTexture, GL_TEXTURE_WRAP_T, GL_REPEAT);
+        glTextureParameteri(smileTexture, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTextureParameteri(smileTexture, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+        glBindTextureUnit(0, smileTexture);
+
+        GLuint SquaresTexture;
+        glCreateTextures(GL_TEXTURE_2D, 1, &SquaresTexture);
+        glTextureStorage2D(SquaresTexture, 1, GL_RGB8, width, height);
+        generate_squares_texture(data, width, height);
+        glTextureSubImage2D(SquaresTexture, 0, 0, 0, width, height, GL_RGB, GL_UNSIGNED_BYTE, data);
+
+        glTextureParameteri(SquaresTexture, GL_TEXTURE_WRAP_S, GL_REPEAT);
+        glTextureParameteri(SquaresTexture, GL_TEXTURE_WRAP_T, GL_REPEAT);
+        glTextureParameteri(SquaresTexture, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTextureParameteri(SquaresTexture, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+        glBindTextureUnit(1, SquaresTexture);
+
+        delete[] data;
 
         //-----------------------------------//
         p_shader_program = std::make_unique<ShaderProgram>(vertex_shader, fragment_shader);
-        if (!p_shader_program->isCompiled()) return false;
+        if (!p_shader_program->is_compiled()) return false;
 
 
         p_vao = std::make_unique<VertexArray>();
 
         BufferLayout buffer_layout{
             ShaderDataType::Float3,
-            ShaderDataType::Float3
+            ShaderDataType::Float3,
+            ShaderDataType::Float2
         };
 
         VertexBuffer vbo(points_colors, sizeof(points_colors), buffer_layout);
@@ -148,6 +254,7 @@ namespace SimpleEngine {
         VertexArray::unbind();
         //-----------------------------------//
 
+        int frame = 0;
 
 		while (!m_bCloseWindow) {
 
@@ -177,8 +284,9 @@ namespace SimpleEngine {
             camera.set_projection_mode(is_perspective_mode ? Camera::ProjectionMode::Perspective : Camera::ProjectionMode::Orthographic);
 
             p_shader_program->bind();
-            p_shader_program->setMatrix4("model_matrix", model_matrix);
-            p_shader_program->setMatrix4("view_projection_matrix", camera.get_projection_matrix() * camera.get_view_matrix());
+            p_shader_program->set_matrix4("model_matrix", model_matrix);
+            p_shader_program->set_matrix4("view_projection_matrix", camera.get_projection_matrix() * camera.get_view_matrix());
+            p_shader_program->set_int("current_frame", frame++);
 
             Renderer_OpenGL::draw(*p_vao);
 
@@ -205,6 +313,8 @@ namespace SimpleEngine {
 			on_update();
 		}
 
+        glDeleteTextures(1, &smileTexture);
+        glDeleteTextures(1, &SquaresTexture);
 		m_pWindow = nullptr;
 
 		return 0;

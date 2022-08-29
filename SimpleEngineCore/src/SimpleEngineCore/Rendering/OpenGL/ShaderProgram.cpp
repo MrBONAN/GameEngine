@@ -6,20 +6,6 @@
 #include <fstream>
 
 namespace SimpleEngine {
-
-	/*std::string downloadShaderSrc(const char* path) {
-#ifndef NDEBUG
-		std::string src = "..\\..\\build\\bin\\Release\\";
-		src += path;
-#else
-		std::string src = path;
-#endif
-
-		std::ifstream file(src, std::ios_base::in);
-		std::string str{ std::istreambuf_iterator<char>(file), std::istreambuf_iterator<char>() };
-		return std::move(str);
-	}*/
-
 	bool createShader(const char* source, GLuint shader_type, GLuint& shader_id) {
 		shader_id = glCreateShader(shader_type);
 		glShaderSource(shader_id, 1, &source, nullptr);
@@ -88,9 +74,12 @@ namespace SimpleEngine {
 		glUseProgram(0);
 	}
 
-	void ShaderProgram::setMatrix4(const char* name, glm::mat4& matrix)
-	{
+	void ShaderProgram::set_matrix4(const char* name, glm::mat4& matrix) {
 		glUniformMatrix4fv(glGetUniformLocation(m_id, name), 1, GL_FALSE, glm::value_ptr(matrix));
+	}
+
+	void ShaderProgram::set_int(const char* name, const int value) {
+		glUniform1i(glGetUniformLocation(m_id, name), value);
 	}
 
 	ShaderProgram& ShaderProgram::operator=(ShaderProgram&& shaderprogram) noexcept{

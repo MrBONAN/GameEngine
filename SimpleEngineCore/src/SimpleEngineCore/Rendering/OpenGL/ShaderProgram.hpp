@@ -19,8 +19,9 @@ namespace SimpleEngine {
 
 		void bind() const;
 		static void unbind();
-		bool isCompiled() const { return m_isCompiled; }
-		void setMatrix4(const char* name, glm::mat4& matrix);
+		bool is_compiled() const { return m_isCompiled; }
+		void set_matrix4(const char* name, glm::mat4& matrix);
+		void set_int(const char* name, const int value);
 
 	private:
 		bool m_isCompiled = false;
